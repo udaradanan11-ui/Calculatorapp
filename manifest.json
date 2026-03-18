@@ -1,0 +1,15 @@
+{
+  "name": "Cinnamon profit calculator",
+  "short_name": "calculetor", 
+  "start_url": "myapp..html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#228B22",
+  "icons": [{
+    "src": "icon.png",
+    "sizes": "192x192",
+    "type": "icon.png"
+  }]
+}
+
+Save
