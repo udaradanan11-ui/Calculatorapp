@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice Pro - LKR Business Calculator</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #d35400; --accent: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 10px; color: #333; }
+        .container { max-width: 650px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
+        h2 { color: var(--primary); text-align: center; font-size: 22px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 15px; }
+        .section-title { font-weight: bold; color: var(--secondary); margin-bottom: 12px; font-size: 15px; display: block; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .spice-row { background: #fdfefe; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px; position: relative; border-left: 4px solid var(--secondary); }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%; font-weight: bold; margin-bottom: 15px; }
+        .save-btn { background: #3498db; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 10px; width: 100%; }
+        .result-box { background: var(--primary); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
+        .profit-val { background: var(--accent); padding: 15px; font-size: 2em; border-radius: 8px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
+        .highlight { color: #f1c40f; font-weight: bold; font-size: 14px; }
+        .info-tag, .auto-summary { 
+            font-size: 16px; 
+            color: #2980b9; 
+            font-weight: bold; 
+            margin-top: 10px; 
+            margin-bottom: 10px; 
+            display: block; 
+            background: #f0f7fb; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            border-left: 3px solid #3498db; 
+        }
+        .checkbox-group { margin-bottom: 12px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        .weight-price-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; margin-bottom: 5px; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+        .price-input { margin-bottom: 0 !important; padding: 4px 8px !important; font-size: 12px !important; }
+        .price-input:disabled { background: #eee; border-color: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Spice Business Pro Calculator</h2>
+
+    <div class="section" style="background: #eaf2f8;">
+        <span class="section-title">01. මුදල් ඒකකය සහ විනිමය (Currency)</span>
+        <div class="grid-2">
+            <div>
+                <label>Currency Type:</label>
+                <select id="currency_symbol" onchange="updatePriceLabels(); calc();">
+                    <option value="£">GBP (£)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EURO (€)</option>
+                </select>
+            </div>
+            <div>
+                <label>විකුණුම් මිල (Rs.):</label>
+                <input type="number" id="ex_rate" value="385" oninput="calc()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">02. ස්ථාවර වියදම් (Monthly LKR)</span>
+        <button class="save-btn" onclick="saveFixedCosts()">Save Fixed Costs</button>
+        <div class="grid-2">
+            <div><label>UK ව්‍යාපාර ලියාපදිංචිය:</label><input type="number" id="uk_reg_lkr" value="62000" oninput="calc()"></div>
+            <div><label>Domain ගාස්තුව:</label><input type="number" id="domain_lkr" value="4500" oninput="calc()"></div>
+            <div><label>Shopify ගාස්තුව:</label><input type="number" id="shopify_lkr" value="12000" oninput="calc()"></div>
+            <div><label>Gemini / AI සේවා:</label><input type="number" id="gemini_lkr" value="6000" oninput="calc()"></div>
+            <div><label>Professional Email:</label><input type="number" id="email_lkr" value="1500" oninput="calc()"></div>
+            <div><label>SEO / වෙනත් සේවා:</label><input type="number" id="seo_lkr" value="10000" oninput="calc()"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">03. අලෙවිකරණය සහ බැංකු ගාස්තු</span>
+        <div class="grid-2">
+            <div>
+                <label>Ads (පැකට්ටුවකට Rs.):</label>
+                <input type="number" id="marketing_lkr" value="300" oninput="calc()">
+                <div class="auto-summary" id="auto_ads">මුළු Ads: Rs. 0</div>
+            </div>
+            <div>
+                <label>Gateway / Bank Fee (%):</label>
+                <input type="number" id="gateway_percent" value="5" oninput="calc()">
+                <div class="auto-summary" id="auto_gw">මුළු Fee: Rs. 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spice-container">
+        <div class="spice-row">
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="උදා: මිරිස් කුඩු" oninput="calc()">
+            
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="15" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="7000" oninput="calc()"></div>
+            </div>
+            
+            <label>බර සහ විකුණුම් මිල (පැකට්ටුවක් සඳහා):</label>
+            <div class="checkbox-group">
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="30" onchange="togglePrice(this)"> 30g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="50" checked onchange="togglePrice(this)"> 50g</label>
+                    <input type="number" class="price-input" value="8.99" oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="70" onchange="togglePrice(this)"> 70g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="100" onchange="togglePrice(this)"> 100g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="200" onchange="togglePrice(this)"> 200g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="500" onchange="togglePrice(this)"> 500g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="1000" onchange="togglePrice(this)"> 1kg</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+            </div>
+            
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        </div>
+    </div>
+    <button class="add-btn" onclick="addSpice()">+ තවත් කුළුබඩු වර්ගයක් එක් කරන්න</button>
+
+    <div class="section">
+        <span class="section-title">05. ප්‍රවාහනය සහ Huboo (Logistics)</span>
+        <div class="grid-2">
+            <div><label>මුළු Courier (Rs.):</label><input type="number" id="ship_sl_lkr" value="55000" oninput="calc()"></div>
+            <div><label>රේගු / බදු (Rs.):</label><input type="number" id="customs_lkr" value="0" oninput="calc()"></div>
+            <div><label>SKU ගණන (Auto):</label><input type="number" id="sku_count" value="1" readonly style="background: #f1f1f1; cursor: not-allowed;"></div>
+            <div><label id="fulfillment_label">Fulfillment (£) (Manual):</label><input type="number" id="manual_huboo_gbp" value="4.91" oninput="calc()"></div>
+        </div>
+        <div class="info-tag" id="huboo_summary">Huboo Fee: £0 | මුළු (LKR): Rs. 0</div>
+    </div>
+
+    <div class="result-box" id="results">
+        <div class="profit-val" id="final_net_profit">Rs. 0</div>
+        <div class="details" id="final_details"></div>
+    </div>
+</div>
+
+<script>
+    function updatePriceLabels() {
+        const symbol = document.getElementById('currency_symbol').value;
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.placeholder = `Price (${symbol})`;
+        });
+        document.getElementById('fulfillment_label').innerText = `Fulfillment (${symbol}) (Manual):`;
+    }
+
+    function togglePrice(checkbox) {
+        const priceInput = checkbox.parentElement.nextElementSibling;
+        priceInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) priceInput.value = "";
+        calc();
+    }
+
+    function saveFixedCosts() {
+        const costs = {
+            uk: document.getElementById('uk_reg_lkr').value,
+            dom: document.getElementById('domain_lkr').value,
+            shop: document.getElementById('shopify_lkr').value,
+            gem: document.getElementById('gemini_lkr').value,
+            eml: document.getElementById('email_lkr').value,
+            seo: document.getElementById('seo_lkr').value
+        };
+        localStorage.setItem('fixedCosts', JSON.stringify(costs));
+        alert("ස්ථාවර මිල ගණන් සුරැකින ලදී!");
+    }
+
+    function loadFixedCosts() {
+        const saved = localStorage.getItem('fixedCosts');
+        if (saved) {
+            const c = JSON.parse(saved);
+            document.getElementById('uk_reg_lkr').value = c.uk;
+            document.getElementById('domain_lkr').value = c.dom;
+            document.getElementById('shopify_lkr').value = c.shop;
+            document.getElementById('gemini_lkr').value = c.gem;
+            document.getElementById('email_lkr').value = c.eml;
+            document.getElementById('seo_lkr').value = c.seo;
+        }
+    }
+
+    function addSpice() {
+        const symbol = document.getElementById('currency_symbol').value;
+        const container = document.getElementById('spice-container');
+        const div = document.createElement('div');
+        div.className = 'spice-row';
+        div.innerHTML = `
+            <button class="remove-btn" onclick="this.parentElement.remove(); calc();">X</button>
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="නම ඇතුළත් කරන්න" oninput="calc()">
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="0" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="0" oninput="calc()"></div>
+            </div>
+            <label>බර සහ විකුණුම් මිල:</label>
+            <div class="checkbox-group">
+                ${[30, 50, 70, 100, 200, 500, 1000].map(w => `
+                    <div class="weight-price-row">
+                        <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="${w}" onchange="togglePrice(this)"> ${w >= 1000 ? '1kg' : w+'g'}</label>
+                        <input type="number" class="price-input" placeholder="Price (${symbol})" disabled oninput="calc()">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        `;
+        container.appendChild(div);
+    }
+
+    function calc() {
+        const exRate = parseFloat(document.getElementById('ex_rate').value) || 0;
+        const curSym = document.getElementById('currency_symbol').value;
+        const mktPerP = parseFloat(document.getElementById('marketing_lkr').value) || 0;
+        const gwPer = parseFloat(document.getElementById('gateway_percent').value) || 0;
+
+        let totalPacks = 0;
+        let totalProdLKR = 0;
+        let totalRevLKR = 0;
+        let totalSKUs = 0;
+
+        document.querySelectorAll('.spice-row').forEach(row => {
+            let totalWeightKg = parseFloat(row.querySelector('.s-weight').value) || 0;
+            let pCostPerKg = parseFloat(row.querySelector('.s-pcost').value) || 0;
+            
+            let selectedWeights = [];
+            row.querySelectorAll('.weight-price-row').forEach(wRow => {
+                let cb = wRow.querySelector('.p-weight-check');
+                let priceInp = wRow.querySelector('.price-input');
+                if (cb.checked) {
+                    selectedWeights.push({
+                        weight: parseFloat(cb.value),
+                        price: parseFloat(priceInp.value) || 0
+                    });
+                    totalSKUs++; // SKU auto increment based on checked variants
+                }
+            });
+
+            let rowPacks = 0;
+            let rowRemainG = totalWeightKg * 1000;
+            let rowRev = 0;
+
+            if (selectedWeights.length > 0) {
+                let weightPerType = (totalWeightKg * 1000) / selectedWeights.length;
+                let detailText = [];
+                
+                selectedWeights.forEach(item => {
+                    let pCount = Math.floor(weightPerType / item.weight);
+                    rowPacks += pCount;
+                    rowRemainG -= (pCount * item.weight);
+                    rowRev += (pCount * item.price * exRate);
+                    detailText.push(`${pCount} (${item.weight >= 1000 ? '1kg' : item.weight + 'g'})`);
+                });
+
+                let prodTotal = totalWeightKg * pCostPerKg;
+                row.querySelector('.s-result-info').innerText = `පැකට්: ${detailText.join(' + ')} | ඉතිරි: ${rowRemainG.toFixed(0)}g | මුළු නිෂ්පාදන මිල: Rs. ${prodTotal.toLocaleString()}`;
+                
+                totalPacks += rowPacks;
+                totalProdLKR += prodTotal;
+                totalRevLKR += rowRev;
+            } else {
+                row.querySelector('.s-result-info').innerText = `බර ප්‍රමාණයන් තෝරන්න.`;
+            }
+        });
+
+        // Update SKU Count Auto
+        document.getElementById('sku_count').value = totalSKUs;
+
+        let totalMktLKR = totalPacks * mktPerP;
+        let totalGwLKR = totalRevLKR * (gwPer / 100);
+        
+        document.getElementById('auto_ads').innerText = `මුළු Ads: Rs. ${totalMktLKR.toLocaleString()}`;
+        document.getElementById('auto_gw').innerText = `මුළු Fee: Rs. ${totalGwLKR.toLocaleString()}`;
+
+        // Huboo Calculation Logic from Image
+        let hubooBaseGBP = 0;
+        if (totalPacks > 0) {
+            if (totalPacks <= 300) hubooBaseGBP = 50;
+            else if (totalPacks <= 1500) hubooBaseGBP = 150;
+            else hubooBaseGBP = 450;
+        }
+        
+        let manualHubooUnit = parseFloat(document.getElementById('manual_huboo_gbp').value) || 0;
+        let hubooTotalGBP = hubooBaseGBP + (totalPacks * manualHubooUnit);
+        
+        // Minimum fulfilment fee check (£1000) as per image notes if applicable, 
+        // but typically users want to see the actual cost first. 
+        // Let's keep the actual calculation based on tiers.
+        
+        let hubooTotalLKR = hubooTotalGBP * exRate;
+        document.getElementById('huboo_summary').innerText = `Huboo Total: ${curSym}${hubooTotalGBP.toFixed(2)} | මුළු (LKR): Rs. ${hubooTotalLKR.toLocaleString()}`;
+
+        let fixedLKR = (parseFloat(document.getElementById('uk_reg_lkr').value)/12) + (parseFloat(document.getElementById('domain_lkr').value)/12) +
+                        parseFloat(document.getElementById('shopify_lkr').value) + parseFloat(document.getElementById('gemini_lkr').value) +
+                        parseFloat(document.getElementById('email_lkr').value) + parseFloat(document.getElementById('seo_lkr').value);
+
+        let shipping = parseFloat(document.getElementById('ship_sl_lkr').value) || 0;
+        let customs = parseFloat(document.getElementById('customs_lkr').value) || 0;
+
+        let totalExpLKR = totalProdLKR + totalMktLKR + totalGwLKR + hubooTotalLKR + fixedLKR + shipping + customs;
+        let netProfitLKR = totalRevLKR - totalExpLKR;
+
+        document.getElementById('final_net_profit').innerText = `Rs. ${netProfitLKR.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        document.getElementById('final_net_profit').style.background = netProfitLKR >= 0 ? 'var(--accent)' : '#c0392b';
+
+        document.getElementById('final_details').innerHTML = `
+            <div>මුළු පැකට් ගණන: <span class="highlight">${totalPacks}</span></div>
+            <div>මාසික ආදායම: <span class="highlight">Rs. ${totalRevLKR.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>
+            <div>මුළු නිෂ්පාදන මිල: <span class="highlight">Rs. ${totalProdLKR.toLocaleString()}</span></div>
+            <div>මුළු Ads වියදම: <span class="highlight">Rs. ${totalMktLKR.toLocaleString()}</span></div>
+            <div>Shipping (LKR): <span class="highlight">Rs. ${shipping.toLocaleString()}</span></div>
+            <div>Huboo වැය (LKR): <span class="highlight">Rs. ${hubooTotalLKR.toLocaleString()}</span></div>
+            <div>පැකට් 1ක සාමාන්‍ය ලාභය: <span class="highlight">Rs. ${totalPacks > 0 ? (netProfitLKR/totalPacks).toFixed(0) : 0}</span></div>
+            <div>ROI: <span class="highlight">${totalExpLKR > 0 ? ((netProfitLKR/totalExpLKR)*100).toFixed(1) : 0}%</span></div>
+        `;
+    }
+
+    window.onload = function() {
+        loadFixedCosts();
+        updatePriceLabels();
+        calc();
+    };
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice Pro - LKR Business Calculator</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #d35400; --accent: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 10px; color: #333; }
+        .container { max-width: 650px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
+        h2 { color: var(--primary); text-align: center; font-size: 22px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 15px; }
+        .section-title { font-weight: bold; color: var(--secondary); margin-bottom: 12px; font-size: 15px; display: block; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .spice-row { background: #fdfefe; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px; position: relative; border-left: 4px solid var(--secondary); }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%; font-weight: bold; margin-bottom: 15px; }
+        .save-btn { background: #3498db; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 10px; width: 100%; }
+        .result-box { background: var(--primary); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
+        .profit-val { background: var(--accent); padding: 15px; font-size: 2em; border-radius: 8px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
+        .highlight { color: #f1c40f; font-weight: bold; font-size: 14px; }
+        .info-tag, .auto-summary { 
+            font-size: 16px; 
+            color: #2980b9; 
+            font-weight: bold; 
+            margin-top: 10px; 
+            margin-bottom: 10px; 
+            display: block; 
+            background: #f0f7fb; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            border-left: 3px solid #3498db; 
+        }
+        .checkbox-group { margin-bottom: 12px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        .weight-price-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; margin-bottom: 5px; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+        .price-input { margin-bottom: 0 !important; padding: 4px 8px !important; font-size: 12px !important; }
+        .price-input:disabled { background: #eee; border-color: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Spice Business Pro Calculator</h2>
+
+    <div class="section" style="background: #eaf2f8;">
+        <span class="section-title">01. මුදල් ඒකකය සහ විනිමය (Currency)</span>
+        <div class="grid-2">
+            <div>
+                <label>Currency Type:</label>
+                <select id="currency_symbol" onchange="updatePriceLabels(); calc();">
+                    <option value="£">GBP (£)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EURO (€)</option>
+                </select>
+            </div>
+            <div>
+                <label>විකුණුම් මිල (Rs.):</label>
+                <input type="number" id="ex_rate" value="385" oninput="calc()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">02. ස්ථාවර වියදම් (Monthly LKR)</span>
+        <button class="save-btn" onclick="saveFixedCosts()">Save Fixed Costs</button>
+        <div class="grid-2">
+            <div><label>UK ව්‍යාපාර ලියාපදිංචිය:</label><input type="number" id="uk_reg_lkr" value="62000" oninput="calc()"></div>
+            <div><label>Domain ගාස්තුව:</label><input type="number" id="domain_lkr" value="4500" oninput="calc()"></div>
+            <div><label>Shopify ගාස්තුව:</label><input type="number" id="shopify_lkr" value="12000" oninput="calc()"></div>
+            <div><label>Gemini / AI සේවා:</label><input type="number" id="gemini_lkr" value="6000" oninput="calc()"></div>
+            <div><label>Professional Email:</label><input type="number" id="email_lkr" value="1500" oninput="calc()"></div>
+            <div><label>SEO / වෙනත් සේවා:</label><input type="number" id="seo_lkr" value="10000" oninput="calc()"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">03. අලෙවිකරණය සහ බැංකු ගාස්තු</span>
+        <div class="grid-2">
+            <div>
+                <label>Ads (පැකට්ටුවකට Rs.):</label>
+                <input type="number" id="marketing_lkr" value="300" oninput="calc()">
+                <div class="auto-summary" id="auto_ads">මුළු Ads: Rs. 0</div>
+            </div>
+            <div>
+                <label>Gateway / Bank Fee (%):</label>
+                <input type="number" id="gateway_percent" value="5" oninput="calc()">
+                <div class="auto-summary" id="auto_gw">මුළු Fee: Rs. 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spice-container">
+        <div class="spice-row">
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="උදා: මිරිස් කුඩු" oninput="calc()">
+            
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="15" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="7000" oninput="calc()"></div>
+            </div>
+            
+            <label>බර සහ විකුණුම් මිල (පැකට්ටුවක් සඳහා):</label>
+            <div class="checkbox-group">
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="30" onchange="togglePrice(this)"> 30g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="50" checked onchange="togglePrice(this)"> 50g</label>
+                    <input type="number" class="price-input" value="8.99" oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="70" onchange="togglePrice(this)"> 70g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="100" onchange="togglePrice(this)"> 100g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="200" onchange="togglePrice(this)"> 200g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="500" onchange="togglePrice(this)"> 500g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="1000" onchange="togglePrice(this)"> 1kg</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+            </div>
+            
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        </div>
+    </div>
+    <button class="add-btn" onclick="addSpice()">+ තවත් කුළුබඩු වර්ගයක් එක් කරන්න</button>
+
+    <div class="section">
+        <span class="section-title">05. ප්‍රවාහනය සහ Huboo (Logistics)</span>
+        <div class="grid-2">
+            <div><label>මුළු Courier (Rs.):</label><input type="number" id="ship_sl_lkr" value="55000" oninput="calc()"></div>
+            <div><label>රේගු / බදු (Rs.):</label><input type="number" id="customs_lkr" value="0" oninput="calc()"></div>
+            <div><label>SKU ගණන (Auto):</label><input type="number" id="sku_count" value="1" readonly style="background: #f1f1f1; cursor: not-allowed;"></div>
+            <div><label id="fulfillment_label">Fulfillment (£) (Manual):</label><input type="number" id="manual_huboo_gbp" value="4.91" oninput="calc()"></div>
+        </div>
+        <div class="info-tag" id="huboo_summary">Huboo Fee: £0 | මුළු (LKR): Rs. 0</div>
+    </div>
+
+    <div class="result-box" id="results">
+        <div class="profit-val" id="final_net_profit">Rs. 0</div>
+        <div class="details" id="final_details"></div>
+    </div>
+</div>
+
+<script>
+    function updatePriceLabels() {
+        const symbol = document.getElementById('currency_symbol').value;
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.placeholder = `Price (${symbol})`;
+        });
+        document.getElementById('fulfillment_label').innerText = `Fulfillment (${symbol}) (Manual):`;
+    }
+
+    function togglePrice(checkbox) {
+        const priceInput = checkbox.parentElement.nextElementSibling;
+        priceInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) priceInput.value = "";
+        calc();
+    }
+
+    function saveFixedCosts() {
+        const costs = {
+            uk: document.getElementById('uk_reg_lkr').value,
+            dom: document.getElementById('domain_lkr').value,
+            shop: document.getElementById('shopify_lkr').value,
+            gem: document.getElementById('gemini_lkr').value,
+            eml: document.getElementById('email_lkr').value,
+            seo: document.getElementById('seo_lkr').value
+        };
+        localStorage.setItem('fixedCosts', JSON.stringify(costs));
+        alert("ස්ථාවර මිල ගණන් සුරැකින ලදී!");
+    }
+
+    function loadFixedCosts() {
+        const saved = localStorage.getItem('fixedCosts');
+        if (saved) {
+            const c = JSON.parse(saved);
+            document.getElementById('uk_reg_lkr').value = c.uk;
+            document.getElementById('domain_lkr').value = c.dom;
+            document.getElementById('shopify_lkr').value = c.shop;
+            document.getElementById('gemini_lkr').value = c.gem;
+            document.getElementById('email_lkr').value = c.eml;
+            document.getElementById('seo_lkr').value = c.seo;
+        }
+    }
+
+    function addSpice() {
+        const symbol = document.getElementById('currency_symbol').value;
+        const container = document.getElementById('spice-container');
+        const div = document.createElement('div');
+        div.className = 'spice-row';
+        div.innerHTML = `
+            <button class="remove-btn" onclick="this.parentElement.remove(); calc();">X</button>
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="නම ඇතුළත් කරන්න" oninput="calc()">
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="0" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="0" oninput="calc()"></div>
+            </div>
+            <label>බර සහ විකුණුම් මිල:</label>
+            <div class="checkbox-group">
+                ${[30, 50, 70, 100, 200, 500, 1000].map(w => `
+                    <div class="weight-price-row">
+                        <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="${w}" onchange="togglePrice(this)"> ${w >= 1000 ? '1kg' : w+'g'}</label>
+                        <input type="number" class="price-input" placeholder="Price (${symbol})" disabled oninput="calc()">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        `;
+        container.appendChild(div);
+    }
+
+    function calc() {
+        const exRate = parseFloat(document.getElementById('ex_rate').value) || 0;
+        const curSym = document.getElementById('currency_symbol').value;
+        const mktPerP = parseFloat(document.getElementById('marketing_lkr').value) || 0;
+        const gwPer = parseFloat(document.getElementById('gateway_percent').value) || 0;
+
+        let totalPacks = 0;
+        let totalProdLKR = 0;
+        let totalRevLKR = 0;
+        let totalSKUs = 0;
+
+        document.querySelectorAll('.spice-row').forEach(row => {
+            let totalWeightKg = parseFloat(row.querySelector('.s-weight').value) || 0;
+            let pCostPerKg = parseFloat(row.querySelector('.s-pcost').value) || 0;
+            
+            let selectedWeights = [];
+            row.querySelectorAll('.weight-price-row').forEach(wRow => {
+                let cb = wRow.querySelector('.p-weight-check');
+                let priceInp = wRow.querySelector('.price-input');
+                if (cb.checked) {
+                    selectedWeights.push({
+                        weight: parseFloat(cb.value),
+                        price: parseFloat(priceInp.value) || 0
+                    });
+                    totalSKUs++; // SKU auto increment based on checked variants
+                }
+            });
+
+            let rowPacks = 0;
+            let rowRemainG = totalWeightKg * 1000;
+            let rowRev = 0;
+
+            if (selectedWeights.length > 0) {
+                let weightPerType = (totalWeightKg * 1000) / selectedWeights.length;
+                let detailText = [];
+                
+                selectedWeights.forEach(item => {
+                    let pCount = Math.floor(weightPerType / item.weight);
+                    rowPacks += pCount;
+                    rowRemainG -= (pCount * item.weight);
+                    rowRev += (pCount * item.price * exRate);
+                    detailText.push(`${pCount} (${item.weight >= 1000 ? '1kg' : item.weight + 'g'})`);
+                });
+
+                let prodTotal = totalWeightKg * pCostPerKg;
+                row.querySelector('.s-result-info').innerText = `පැකට්: ${detailText.join(' + ')} | ඉතිරි: ${rowRemainG.toFixed(0)}g | මුළු නිෂ්පාදන මිල: Rs. ${prodTotal.toLocaleString()}`;
+                
+                totalPacks += rowPacks;
+                totalProdLKR += prodTotal;
+                totalRevLKR += rowRev;
+            } else {
+                row.querySelector('.s-result-info').innerText = `බර ප්‍රමාණයන් තෝරන්න.`;
+            }
+        });
+
+        // Update SKU Count Auto
+        document.getElementById('sku_count').value = totalSKUs;
+
+        let totalMktLKR = totalPacks * mktPerP;
+        let totalGwLKR = totalRevLKR * (gwPer / 100);
+        
+        document.getElementById('auto_ads').innerText = `මුළු Ads: Rs. ${totalMktLKR.toLocaleString()}`;
+        document.getElementById('auto_gw').innerText = `මුළු Fee: Rs. ${totalGwLKR.toLocaleString()}`;
+
+        // Huboo Calculation Logic from Image
+        let hubooBaseGBP = 0;
+        if (totalPacks > 0) {
+            if (totalPacks <= 300) hubooBaseGBP = 50;
+            else if (totalPacks <= 1500) hubooBaseGBP = 150;
+            else hubooBaseGBP = 450;
+        }
+        
+        let manualHubooUnit = parseFloat(document.getElementById('manual_huboo_gbp').value) || 0;
+        let hubooTotalGBP = hubooBaseGBP + (totalPacks * manualHubooUnit);
+        
+        // Minimum fulfilment fee check (£1000) as per image notes if applicable, 
+        // but typically users want to see the actual cost first. 
+        // Let's keep the actual calculation based on tiers.
+        
+        let hubooTotalLKR = hubooTotalGBP * exRate;
+        document.getElementById('huboo_summary').innerText = `Huboo Total: ${curSym}${hubooTotalGBP.toFixed(2)} | මුළු (LKR): Rs. ${hubooTotalLKR.toLocaleString()}`;
+
+        let fixedLKR = (parseFloat(document.getElementById('uk_reg_lkr').value)/12) + (parseFloat(document.getElementById('domain_lkr').value)/12) +
+                        parseFloat(document.getElementById('shopify_lkr').value) + parseFloat(document.getElementById('gemini_lkr').value) +
+                        parseFloat(document.getElementById('email_lkr').value) + parseFloat(document.getElementById('seo_lkr').value);
+
+        let shipping = parseFloat(document.getElementById('ship_sl_lkr').value) || 0;
+        let customs = parseFloat(document.getElementById('customs_lkr').value) || 0;
+
+        let totalExpLKR = totalProdLKR + totalMktLKR + totalGwLKR + hubooTotalLKR + fixedLKR + shipping + customs;
+        let netProfitLKR = totalRevLKR - totalExpLKR;
+
+        document.getElementById('final_net_profit').innerText = `Rs. ${netProfitLKR.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        document.getElementById('final_net_profit').style.background = netProfitLKR >= 0 ? 'var(--accent)' : '#c0392b';
+
+        document.getElementById('final_details').innerHTML = `
+            <div>මුළු පැකට් ගණන: <span class="highlight">${totalPacks}</span></div>
+            <div>මාසික ආදායම: <span class="highlight">Rs. ${totalRevLKR.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>
+            <div>මුළු නිෂ්පාදන මිල: <span class="highlight">Rs. ${totalProdLKR.toLocaleString()}</span></div>
+            <div>මුළු Ads වියදම: <span class="highlight">Rs. ${totalMktLKR.toLocaleString()}</span></div>
+            <div>Shipping (LKR): <span class="highlight">Rs. ${shipping.toLocaleString()}</span></div>
+            <div>Huboo වැය (LKR): <span class="highlight">Rs. ${hubooTotalLKR.toLocaleString()}</span></div>
+            <div>පැකට් 1ක සාමාන්‍ය ලාභය: <span class="highlight">Rs. ${totalPacks > 0 ? (netProfitLKR/totalPacks).toFixed(0) : 0}</span></div>
+            <div>ROI: <span class="highlight">${totalExpLKR > 0 ? ((netProfitLKR/totalExpLKR)*100).toFixed(1) : 0}%</span></div>
+        `;
+    }
+
+    window.onload = function() {
+        loadFixedCosts();
+        updatePriceLabels();
+        calc();
+    };
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice Pro - LKR Business Calculator</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #d35400; --accent: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 10px; color: #333; }
+        .container { max-width: 650px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
+        h2 { color: var(--primary); text-align: center; font-size: 22px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 15px; }
+        .section-title { font-weight: bold; color: var(--secondary); margin-bottom: 12px; font-size: 15px; display: block; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .spice-row { background: #fdfefe; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px; position: relative; border-left: 4px solid var(--secondary); }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%; font-weight: bold; margin-bottom: 15px; }
+        .save-btn { background: #3498db; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 10px; width: 100%; }
+        .result-box { background: var(--primary); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
+        .profit-val { background: var(--accent); padding: 15px; font-size: 2em; border-radius: 8px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
+        .highlight { color: #f1c40f; font-weight: bold; font-size: 14px; }
+        .info-tag, .auto-summary { 
+            font-size: 16px; 
+            color: #2980b9; 
+            font-weight: bold; 
+            margin-top: 10px; 
+            margin-bottom: 10px; 
+            display: block; 
+            background: #f0f7fb; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            border-left: 3px solid #3498db; 
+        }
+        .checkbox-group { margin-bottom: 12px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        .weight-price-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; margin-bottom: 5px; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+        .price-input { margin-bottom: 0 !important; padding: 4px 8px !important; font-size: 12px !important; }
+        .price-input:disabled { background: #eee; border-color: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Spice Business Pro Calculator</h2>
+
+    <div class="section" style="background: #eaf2f8;">
+        <span class="section-title">01. මුදල් ඒකකය සහ විනිමය (Currency)</span>
+        <div class="grid-2">
+            <div>
+                <label>Currency Type:</label>
+                <select id="currency_symbol" onchange="updatePriceLabels(); calc();">
+                    <option value="£">GBP (£)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EURO (€)</option>
+                </select>
+            </div>
+            <div>
+                <label>විකුණුම් මිල (Rs.):</label>
+                <input type="number" id="ex_rate" value="385" oninput="calc()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">02. ස්ථාවර වියදම් (Monthly LKR)</span>
+        <button class="save-btn" onclick="saveFixedCosts()">Save Fixed Costs</button>
+        <div class="grid-2">
+            <div><label>UK ව්‍යාපාර ලියාපදිංචිය:</label><input type="number" id="uk_reg_lkr" value="62000" oninput="calc()"></div>
+            <div><label>Domain ගාස්තුව:</label><input type="number" id="domain_lkr" value="4500" oninput="calc()"></div>
+            <div><label>Shopify ගාස්තුව:</label><input type="number" id="shopify_lkr" value="12000" oninput="calc()"></div>
+            <div><label>Gemini / AI සේවා:</label><input type="number" id="gemini_lkr" value="6000" oninput="calc()"></div>
+            <div><label>Professional Email:</label><input type="number" id="email_lkr" value="1500" oninput="calc()"></div>
+            <div><label>SEO / වෙනත් සේවා:</label><input type="number" id="seo_lkr" value="10000" oninput="calc()"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">03. අලෙවිකරණය සහ බැංකු ගාස්තු</span>
+        <div class="grid-2">
+            <div>
+                <label>Ads (පැකට්ටුවකට Rs.):</label>
+                <input type="number" id="marketing_lkr" value="300" oninput="calc()">
+                <div class="auto-summary" id="auto_ads">මුළු Ads: Rs. 0</div>
+            </div>
+            <div>
+                <label>Gateway / Bank Fee (%):</label>
+                <input type="number" id="gateway_percent" value="5" oninput="calc()">
+                <div class="auto-summary" id="auto_gw">මුළු Fee: Rs. 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spice-container">
+        <div class="spice-row">
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="උදා: මිරිස් කුඩු" oninput="calc()">
+            
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="15" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="7000" oninput="calc()"></div>
+            </div>
+            
+            <label>බර සහ විකුණුම් මිල (පැකට්ටුවක් සඳහා):</label>
+            <div class="checkbox-group">
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="30" onchange="togglePrice(this)"> 30g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="50" checked onchange="togglePrice(this)"> 50g</label>
+                    <input type="number" class="price-input" value="8.99" oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="70" onchange="togglePrice(this)"> 70g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="100" onchange="togglePrice(this)"> 100g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="200" onchange="togglePrice(this)"> 200g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="500" onchange="togglePrice(this)"> 500g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="1000" onchange="togglePrice(this)"> 1kg</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+            </div>
+            
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        </div>
+    </div>
+    <button class="add-btn" onclick="addSpice()">+ තවත් කුළුබඩු වර්ගයක් එක් කරන්න</button>
+
+    <div class="section">
+        <span class="section-title">05. ප්‍රවාහනය සහ Huboo (Logistics)</span>
+        <div class="grid-2">
+            <div><label>මුළු Courier (Rs.):</label><input type="number" id="ship_sl_lkr" value="55000" oninput="calc()"></div>
+            <div><label>රේගු / බදු (Rs.):</label><input type="number" id="customs_lkr" value="0" oninput="calc()"></div>
+            <div><label>SKU ගණන (Auto):</label><input type="number" id="sku_count" value="1" readonly style="background: #f1f1f1; cursor: not-allowed;"></div>
+            <div><label id="fulfillment_label">Fulfillment (£) (Manual):</label><input type="number" id="manual_huboo_gbp" value="4.91" oninput="calc()"></div>
+        </div>
+        <div class="info-tag" id="huboo_summary">Huboo Fee: £0 | මුළු (LKR): Rs. 0</div>
+    </div>
+
+    <div class="result-box" id="results">
+        <div class="profit-val" id="final_net_profit">Rs. 0</div>
+        <div class="details" id="final_details"></div>
+    </div>
+</div>
+
+<script>
+    function updatePriceLabels() {
+        const symbol = document.getElementById('currency_symbol').value;
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.placeholder = `Price (${symbol})`;
+        });
+        document.getElementById('fulfillment_label').innerText = `Fulfillment (${symbol}) (Manual):`;
+    }
+
+    function togglePrice(checkbox) {
+        const priceInput = checkbox.parentElement.nextElementSibling;
+        priceInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) priceInput.value = "";
+        calc();
+    }
+
+    function saveFixedCosts() {
+        const costs = {
+            uk: document.getElementById('uk_reg_lkr').value,
+            dom: document.getElementById('domain_lkr').value,
+            shop: document.getElementById('shopify_lkr').value,
+            gem: document.getElementById('gemini_lkr').value,
+            eml: document.getElementById('email_lkr').value,
+            seo: document.getElementById('seo_lkr').value
+        };
+        localStorage.setItem('fixedCosts', JSON.stringify(costs));
+        alert("ස්ථාවර මිල ගණන් සුරැකින ලදී!");
+    }
+
+    function loadFixedCosts() {
+        const saved = localStorage.getItem('fixedCosts');
+        if (saved) {
+            const c = JSON.parse(saved);
+            document.getElementById('uk_reg_lkr').value = c.uk;
+            document.getElementById('domain_lkr').value = c.dom;
+            document.getElementById('shopify_lkr').value = c.shop;
+            document.getElementById('gemini_lkr').value = c.gem;
+            document.getElementById('email_lkr').value = c.eml;
+            document.getElementById('seo_lkr').value = c.seo;
+        }
+    }
+
+    function addSpice() {
+        const symbol = document.getElementById('currency_symbol').value;
+        const container = document.getElementById('spice-container');
+        const div = document.createElement('div');
+        div.className = 'spice-row';
+        div.innerHTML = `
+            <button class="remove-btn" onclick="this.parentElement.remove(); calc();">X</button>
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="නම ඇතුළත් කරන්න" oninput="calc()">
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="0" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="0" oninput="calc()"></div>
+            </div>
+            <label>බර සහ විකුණුම් මිල:</label>
+            <div class="checkbox-group">
+                ${[30, 50, 70, 100, 200, 500, 1000].map(w => `
+                    <div class="weight-price-row">
+                        <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="${w}" onchange="togglePrice(this)"> ${w >= 1000 ? '1kg' : w+'g'}</label>
+                        <input type="number" class="price-input" placeholder="Price (${symbol})" disabled oninput="calc()">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        `;
+        container.appendChild(div);
+    }
+
+    function calc() {
+        const exRate = parseFloat(document.getElementById('ex_rate').value) || 0;
+        const curSym = document.getElementById('currency_symbol').value;
+        const mktPerP = parseFloat(document.getElementById('marketing_lkr').value) || 0;
+        const gwPer = parseFloat(document.getElementById('gateway_percent').value) || 0;
+
+        let totalPacks = 0;
+        let totalProdLKR = 0;
+        let totalRevLKR = 0;
+        let totalSKUs = 0;
+
+        document.querySelectorAll('.spice-row').forEach(row => {
+            let totalWeightKg = parseFloat(row.querySelector('.s-weight').value) || 0;
+            let pCostPerKg = parseFloat(row.querySelector('.s-pcost').value) || 0;
+            
+            let selectedWeights = [];
+            row.querySelectorAll('.weight-price-row').forEach(wRow => {
+                let cb = wRow.querySelector('.p-weight-check');
+                let priceInp = wRow.querySelector('.price-input');
+                if (cb.checked) {
+                    selectedWeights.push({
+                        weight: parseFloat(cb.value),
+                        price: parseFloat(priceInp.value) || 0
+                    });
+                    totalSKUs++; // SKU auto increment based on checked variants
+                }
+            });
+
+            let rowPacks = 0;
+            let rowRemainG = totalWeightKg * 1000;
+            let rowRev = 0;
+
+            if (selectedWeights.length > 0) {
+                let weightPerType = (totalWeightKg * 1000) / selectedWeights.length;
+                let detailText = [];
+                
+                selectedWeights.forEach(item => {
+                    let pCount = Math.floor(weightPerType / item.weight);
+                    rowPacks += pCount;
+                    rowRemainG -= (pCount * item.weight);
+                    rowRev += (pCount * item.price * exRate);
+                    detailText.push(`${pCount} (${item.weight >= 1000 ? '1kg' : item.weight + 'g'})`);
+                });
+
+                let prodTotal = totalWeightKg * pCostPerKg;
+                row.querySelector('.s-result-info').innerText = `පැකට්: ${detailText.join(' + ')} | ඉතිරි: ${rowRemainG.toFixed(0)}g | මුළු නිෂ්පාදන මිල: Rs. ${prodTotal.toLocaleString()}`;
+                
+                totalPacks += rowPacks;
+                totalProdLKR += prodTotal;
+                totalRevLKR += rowRev;
+            } else {
+                row.querySelector('.s-result-info').innerText = `බර ප්‍රමාණයන් තෝරන්න.`;
+            }
+        });
+
+        // Update SKU Count Auto
+        document.getElementById('sku_count').value = totalSKUs;
+
+        let totalMktLKR = totalPacks * mktPerP;
+        let totalGwLKR = totalRevLKR * (gwPer / 100);
+        
+        document.getElementById('auto_ads').innerText = `මුළු Ads: Rs. ${totalMktLKR.toLocaleString()}`;
+        document.getElementById('auto_gw').innerText = `මුළු Fee: Rs. ${totalGwLKR.toLocaleString()}`;
+
+        // Huboo Calculation Logic from Image
+        let hubooBaseGBP = 0;
+        if (totalPacks > 0) {
+            if (totalPacks <= 300) hubooBaseGBP = 50;
+            else if (totalPacks <= 1500) hubooBaseGBP = 150;
+            else hubooBaseGBP = 450;
+        }
+        
+        let manualHubooUnit = parseFloat(document.getElementById('manual_huboo_gbp').value) || 0;
+        let hubooTotalGBP = hubooBaseGBP + (totalPacks * manualHubooUnit);
+        
+        // Minimum fulfilment fee check (£1000) as per image notes if applicable, 
+        // but typically users want to see the actual cost first. 
+        // Let's keep the actual calculation based on tiers.
+        
+        let hubooTotalLKR = hubooTotalGBP * exRate;
+        document.getElementById('huboo_summary').innerText = `Huboo Total: ${curSym}${hubooTotalGBP.toFixed(2)} | මුළු (LKR): Rs. ${hubooTotalLKR.toLocaleString()}`;
+
+        let fixedLKR = (parseFloat(document.getElementById('uk_reg_lkr').value)/12) + (parseFloat(document.getElementById('domain_lkr').value)/12) +
+                        parseFloat(document.getElementById('shopify_lkr').value) + parseFloat(document.getElementById('gemini_lkr').value) +
+                        parseFloat(document.getElementById('email_lkr').value) + parseFloat(document.getElementById('seo_lkr').value);
+
+        let shipping = parseFloat(document.getElementById('ship_sl_lkr').value) || 0;
+        let customs = parseFloat(document.getElementById('customs_lkr').value) || 0;
+
+        let totalExpLKR = totalProdLKR + totalMktLKR + totalGwLKR + hubooTotalLKR + fixedLKR + shipping + customs;
+        let netProfitLKR = totalRevLKR - totalExpLKR;
+
+        document.getElementById('final_net_profit').innerText = `Rs. ${netProfitLKR.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        document.getElementById('final_net_profit').style.background = netProfitLKR >= 0 ? 'var(--accent)' : '#c0392b';
+
+        document.getElementById('final_details').innerHTML = `
+            <div>මුළු පැකට් ගණන: <span class="highlight">${totalPacks}</span></div>
+            <div>මාසික ආදායම: <span class="highlight">Rs. ${totalRevLKR.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>
+            <div>මුළු නිෂ්පාදන මිල: <span class="highlight">Rs. ${totalProdLKR.toLocaleString()}</span></div>
+            <div>මුළු Ads වියදම: <span class="highlight">Rs. ${totalMktLKR.toLocaleString()}</span></div>
+            <div>Shipping (LKR): <span class="highlight">Rs. ${shipping.toLocaleString()}</span></div>
+            <div>Huboo වැය (LKR): <span class="highlight">Rs. ${hubooTotalLKR.toLocaleString()}</span></div>
+            <div>පැකට් 1ක සාමාන්‍ය ලාභය: <span class="highlight">Rs. ${totalPacks > 0 ? (netProfitLKR/totalPacks).toFixed(0) : 0}</span></div>
+            <div>ROI: <span class="highlight">${totalExpLKR > 0 ? ((netProfitLKR/totalExpLKR)*100).toFixed(1) : 0}%</span></div>
+        `;
+    }
+
+    window.onload = function() {
+        loadFixedCosts();
+        updatePriceLabels();
+        calc();
+    };
+</script>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spice Pro - LKR Business Calculator</title>
+    <style>
+        :root { --primary: #2c3e50; --secondary: #d35400; --accent: #27ae60; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 10px; color: #333; }
+        .container { max-width: 650px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: auto; }
+        h2 { color: var(--primary); text-align: center; font-size: 22px; border-bottom: 3px solid var(--secondary); padding-bottom: 10px; margin-bottom: 20px; }
+        .section { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e1e8ed; margin-bottom: 15px; }
+        .section-title { font-weight: bold; color: var(--secondary); margin-bottom: 12px; font-size: 15px; display: block; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 600; color: #555; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 12px; box-sizing: border-box; font-size: 14px; transition: 0.3s; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .spice-row { background: #fdfefe; padding: 15px; border-radius: 8px; border: 1px solid #dcdde1; margin-bottom: 15px; position: relative; border-left: 4px solid var(--secondary); }
+        .remove-btn { position: absolute; top: 10px; right: 10px; background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-size: 13px; width: 100%; font-weight: bold; margin-bottom: 15px; }
+        .save-btn { background: #3498db; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer; font-size: 12px; margin-bottom: 10px; width: 100%; }
+        .result-box { background: var(--primary); color: white; padding: 20px; border-radius: 10px; text-align: center; margin-top: 20px; }
+        .profit-val { background: var(--accent); padding: 15px; font-size: 2em; border-radius: 8px; font-weight: bold; margin-bottom: 10px; color: white; }
+        .details { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; text-align: left; font-size: 13px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 15px; }
+        .highlight { color: #f1c40f; font-weight: bold; font-size: 14px; }
+        .info-tag, .auto-summary { 
+            font-size: 16px; 
+            color: #2980b9; 
+            font-weight: bold; 
+            margin-top: 10px; 
+            margin-bottom: 10px; 
+            display: block; 
+            background: #f0f7fb; 
+            padding: 5px 10px; 
+            border-radius: 5px; 
+            border-left: 3px solid #3498db; 
+        }
+        .checkbox-group { margin-bottom: 12px; background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee; }
+        .weight-price-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; margin-bottom: 5px; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 12px; cursor: pointer; font-weight: bold; }
+        .checkbox-item input { width: auto; margin: 0; cursor: pointer; }
+        .price-input { margin-bottom: 0 !important; padding: 4px 8px !important; font-size: 12px !important; }
+        .price-input:disabled { background: #eee; border-color: #ddd; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Spice Business Pro Calculator</h2>
+
+    <div class="section" style="background: #eaf2f8;">
+        <span class="section-title">01. මුදල් ඒකකය සහ විනිමය (Currency)</span>
+        <div class="grid-2">
+            <div>
+                <label>Currency Type:</label>
+                <select id="currency_symbol" onchange="updatePriceLabels(); calc();">
+                    <option value="£">GBP (£)</option>
+                    <option value="$">USD ($)</option>
+                    <option value="€">EURO (€)</option>
+                </select>
+            </div>
+            <div>
+                <label>විකුණුම් මිල (Rs.):</label>
+                <input type="number" id="ex_rate" value="385" oninput="calc()">
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">02. ස්ථාවර වියදම් (Monthly LKR)</span>
+        <button class="save-btn" onclick="saveFixedCosts()">Save Fixed Costs</button>
+        <div class="grid-2">
+            <div><label>UK ව්‍යාපාර ලියාපදිංචිය:</label><input type="number" id="uk_reg_lkr" value="62000" oninput="calc()"></div>
+            <div><label>Domain ගාස්තුව:</label><input type="number" id="domain_lkr" value="4500" oninput="calc()"></div>
+            <div><label>Shopify ගාස්තුව:</label><input type="number" id="shopify_lkr" value="12000" oninput="calc()"></div>
+            <div><label>Gemini / AI සේවා:</label><input type="number" id="gemini_lkr" value="6000" oninput="calc()"></div>
+            <div><label>Professional Email:</label><input type="number" id="email_lkr" value="1500" oninput="calc()"></div>
+            <div><label>SEO / වෙනත් සේවා:</label><input type="number" id="seo_lkr" value="10000" oninput="calc()"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <span class="section-title">03. අලෙවිකරණය සහ බැංකු ගාස්තු</span>
+        <div class="grid-2">
+            <div>
+                <label>Ads (පැකට්ටුවකට Rs.):</label>
+                <input type="number" id="marketing_lkr" value="300" oninput="calc()">
+                <div class="auto-summary" id="auto_ads">මුළු Ads: Rs. 0</div>
+            </div>
+            <div>
+                <label>Gateway / Bank Fee (%):</label>
+                <input type="number" id="gateway_percent" value="5" oninput="calc()">
+                <div class="auto-summary" id="auto_gw">මුළු Fee: Rs. 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="spice-container">
+        <div class="spice-row">
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="උදා: මිරිස් කුඩු" oninput="calc()">
+            
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="15" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="7000" oninput="calc()"></div>
+            </div>
+            
+            <label>බර සහ විකුණුම් මිල (පැකට්ටුවක් සඳහා):</label>
+            <div class="checkbox-group">
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="30" onchange="togglePrice(this)"> 30g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="50" checked onchange="togglePrice(this)"> 50g</label>
+                    <input type="number" class="price-input" value="8.99" oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="70" onchange="togglePrice(this)"> 70g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="100" onchange="togglePrice(this)"> 100g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="200" onchange="togglePrice(this)"> 200g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="500" onchange="togglePrice(this)"> 500g</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+                <div class="weight-price-row">
+                    <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="1000" onchange="togglePrice(this)"> 1kg</label>
+                    <input type="number" class="price-input" placeholder="Price (£)" disabled oninput="calc()">
+                </div>
+            </div>
+            
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        </div>
+    </div>
+    <button class="add-btn" onclick="addSpice()">+ තවත් කුළුබඩු වර්ගයක් එක් කරන්න</button>
+
+    <div class="section">
+        <span class="section-title">05. ප්‍රවාහනය සහ Huboo (Logistics)</span>
+        <div class="grid-2">
+            <div><label>මුළු Courier (Rs.):</label><input type="number" id="ship_sl_lkr" value="55000" oninput="calc()"></div>
+            <div><label>රේගු / බදු (Rs.):</label><input type="number" id="customs_lkr" value="0" oninput="calc()"></div>
+            <div><label>SKU ගණන (Auto):</label><input type="number" id="sku_count" value="1" readonly style="background: #f1f1f1; cursor: not-allowed;"></div>
+            <div><label id="fulfillment_label">Fulfillment (£) (Manual):</label><input type="number" id="manual_huboo_gbp" value="4.91" oninput="calc()"></div>
+        </div>
+        <div class="info-tag" id="huboo_summary">Huboo Fee: £0 | මුළු (LKR): Rs. 0</div>
+    </div>
+
+    <div class="result-box" id="results">
+        <div class="profit-val" id="final_net_profit">Rs. 0</div>
+        <div class="details" id="final_details"></div>
+    </div>
+</div>
+
+<script>
+    function updatePriceLabels() {
+        const symbol = document.getElementById('currency_symbol').value;
+        document.querySelectorAll('.price-input').forEach(input => {
+            input.placeholder = `Price (${symbol})`;
+        });
+        document.getElementById('fulfillment_label').innerText = `Fulfillment (${symbol}) (Manual):`;
+    }
+
+    function togglePrice(checkbox) {
+        const priceInput = checkbox.parentElement.nextElementSibling;
+        priceInput.disabled = !checkbox.checked;
+        if (!checkbox.checked) priceInput.value = "";
+        calc();
+    }
+
+    function saveFixedCosts() {
+        const costs = {
+            uk: document.getElementById('uk_reg_lkr').value,
+            dom: document.getElementById('domain_lkr').value,
+            shop: document.getElementById('shopify_lkr').value,
+            gem: document.getElementById('gemini_lkr').value,
+            eml: document.getElementById('email_lkr').value,
+            seo: document.getElementById('seo_lkr').value
+        };
+        localStorage.setItem('fixedCosts', JSON.stringify(costs));
+        alert("ස්ථාවර මිල ගණන් සුරැකින ලදී!");
+    }
+
+    function loadFixedCosts() {
+        const saved = localStorage.getItem('fixedCosts');
+        if (saved) {
+            const c = JSON.parse(saved);
+            document.getElementById('uk_reg_lkr').value = c.uk;
+            document.getElementById('domain_lkr').value = c.dom;
+            document.getElementById('shopify_lkr').value = c.shop;
+            document.getElementById('gemini_lkr').value = c.gem;
+            document.getElementById('email_lkr').value = c.eml;
+            document.getElementById('seo_lkr').value = c.seo;
+        }
+    }
+
+    function addSpice() {
+        const symbol = document.getElementById('currency_symbol').value;
+        const container = document.getElementById('spice-container');
+        const div = document.createElement('div');
+        div.className = 'spice-row';
+        div.innerHTML = `
+            <button class="remove-btn" onclick="this.parentElement.remove(); calc();">X</button>
+            <span class="section-title">04. කුළුබඩු විස්තර</span>
+            <label>කුළුබඩු වර්ගයේ නම:</label>
+            <input type="text" class="s-name" placeholder="නම ඇතුළත් කරන්න" oninput="calc()">
+            <div class="grid-2">
+                <div><label>මුළු බර (kg):</label><input type="number" class="s-weight" value="0" oninput="calc()"></div>
+                <div><label>1kg නිෂ්පාදන මිල (Rs):</label><input type="number" class="s-pcost" value="0" oninput="calc()"></div>
+            </div>
+            <label>බර සහ විකුණුම් මිල:</label>
+            <div class="checkbox-group">
+                ${[30, 50, 70, 100, 200, 500, 1000].map(w => `
+                    <div class="weight-price-row">
+                        <label class="checkbox-item"><input type="checkbox" class="p-weight-check" value="${w}" onchange="togglePrice(this)"> ${w >= 1000 ? '1kg' : w+'g'}</label>
+                        <input type="number" class="price-input" placeholder="Price (${symbol})" disabled oninput="calc()">
+                    </div>
+                `).join('')}
+            </div>
+            <div class="info-tag s-result-info">පැකට්: 0 | ඉතිරි: 0g | මුළු නිෂ්පාදන මිල: Rs. 0</div>
+        `;
+        container.appendChild(div);
+    }
+
+    function calc() {
+        const exRate = parseFloat(document.getElementById('ex_rate').value) || 0;
+        const curSym = document.getElementById('currency_symbol').value;
+        const mktPerP = parseFloat(document.getElementById('marketing_lkr').value) || 0;
+        const gwPer = parseFloat(document.getElementById('gateway_percent').value) || 0;
+
+        let totalPacks = 0;
+        let totalProdLKR = 0;
+        let totalRevLKR = 0;
+        let totalSKUs = 0;
+
+        document.querySelectorAll('.spice-row').forEach(row => {
+            let totalWeightKg = parseFloat(row.querySelector('.s-weight').value) || 0;
+            let pCostPerKg = parseFloat(row.querySelector('.s-pcost').value) || 0;
+            
+            let selectedWeights = [];
+            row.querySelectorAll('.weight-price-row').forEach(wRow => {
+                let cb = wRow.querySelector('.p-weight-check');
+                let priceInp = wRow.querySelector('.price-input');
+                if (cb.checked) {
+                    selectedWeights.push({
+                        weight: parseFloat(cb.value),
+                        price: parseFloat(priceInp.value) || 0
+                    });
+                    totalSKUs++; // SKU auto increment based on checked variants
+                }
+            });
+
+            let rowPacks = 0;
+            let rowRemainG = totalWeightKg * 1000;
+            let rowRev = 0;
+
+            if (selectedWeights.length > 0) {
+                let weightPerType = (totalWeightKg * 1000) / selectedWeights.length;
+                let detailText = [];
+                
+                selectedWeights.forEach(item => {
+                    let pCount = Math.floor(weightPerType / item.weight);
+                    rowPacks += pCount;
+                    rowRemainG -= (pCount * item.weight);
+                    rowRev += (pCount * item.price * exRate);
+                    detailText.push(`${pCount} (${item.weight >= 1000 ? '1kg' : item.weight + 'g'})`);
+                });
+
+                let prodTotal = totalWeightKg * pCostPerKg;
+                row.querySelector('.s-result-info').innerText = `පැකට්: ${detailText.join(' + ')} | ඉතිරි: ${rowRemainG.toFixed(0)}g | මුළු නිෂ්පාදන මිල: Rs. ${prodTotal.toLocaleString()}`;
+                
+                totalPacks += rowPacks;
+                totalProdLKR += prodTotal;
+                totalRevLKR += rowRev;
+            } else {
+                row.querySelector('.s-result-info').innerText = `බර ප්‍රමාණයන් තෝරන්න.`;
+            }
+        });
+
+        // Update SKU Count Auto
+        document.getElementById('sku_count').value = totalSKUs;
+
+        let totalMktLKR = totalPacks * mktPerP;
+        let totalGwLKR = totalRevLKR * (gwPer / 100);
+        
+        document.getElementById('auto_ads').innerText = `මුළු Ads: Rs. ${totalMktLKR.toLocaleString()}`;
+        document.getElementById('auto_gw').innerText = `මුළු Fee: Rs. ${totalGwLKR.toLocaleString()}`;
+
+        // Huboo Calculation Logic from Image
+        let hubooBaseGBP = 0;
+        if (totalPacks > 0) {
+            if (totalPacks <= 300) hubooBaseGBP = 50;
+            else if (totalPacks <= 1500) hubooBaseGBP = 150;
+            else hubooBaseGBP = 450;
+        }
+        
+        let manualHubooUnit = parseFloat(document.getElementById('manual_huboo_gbp').value) || 0;
+        let hubooTotalGBP = hubooBaseGBP + (totalPacks * manualHubooUnit);
+        
+        // Minimum fulfilment fee check (£1000) as per image notes if applicable, 
+        // but typically users want to see the actual cost first. 
+        // Let's keep the actual calculation based on tiers.
+        
+        let hubooTotalLKR = hubooTotalGBP * exRate;
+        document.getElementById('huboo_summary').innerText = `Huboo Total: ${curSym}${hubooTotalGBP.toFixed(2)} | මුළු (LKR): Rs. ${hubooTotalLKR.toLocaleString()}`;
+
+        let fixedLKR = (parseFloat(document.getElementById('uk_reg_lkr').value)/12) + (parseFloat(document.getElementById('domain_lkr').value)/12) +
+                        parseFloat(document.getElementById('shopify_lkr').value) + parseFloat(document.getElementById('gemini_lkr').value) +
+                        parseFloat(document.getElementById('email_lkr').value) + parseFloat(document.getElementById('seo_lkr').value);
+
+        let shipping = parseFloat(document.getElementById('ship_sl_lkr').value) || 0;
+        let customs = parseFloat(document.getElementById('customs_lkr').value) || 0;
+
+        let totalExpLKR = totalProdLKR + totalMktLKR + totalGwLKR + hubooTotalLKR + fixedLKR + shipping + customs;
+        let netProfitLKR = totalRevLKR - totalExpLKR;
+
+        document.getElementById('final_net_profit').innerText = `Rs. ${netProfitLKR.toLocaleString(undefined, {maximumFractionDigits: 0})}`;
+        document.getElementById('final_net_profit').style.background = netProfitLKR >= 0 ? 'var(--accent)' : '#c0392b';
+
+        document.getElementById('final_details').innerHTML = `
+            <div>මුළු පැකට් ගණන: <span class="highlight">${totalPacks}</span></div>
+            <div>මාසික ආදායම: <span class="highlight">Rs. ${totalRevLKR.toLocaleString(undefined,{maximumFractionDigits:0})}</span></div>
+            <div>මුළු නිෂ්පාදන මිල: <span class="highlight">Rs. ${totalProdLKR.toLocaleString()}</span></div>
+            <div>මුළු Ads වියදම: <span class="highlight">Rs. ${totalMktLKR.toLocaleString()}</span></div>
+            <div>Shipping (LKR): <span class="highlight">Rs. ${shipping.toLocaleString()}</span></div>
+            <div>Huboo වැය (LKR): <span class="highlight">Rs. ${hubooTotalLKR.toLocaleString()}</span></div>
+            <div>පැකට් 1ක සාමාන්‍ය ලාභය: <span class="highlight">Rs. ${totalPacks > 0 ? (netProfitLKR/totalPacks).toFixed(0) : 0}</span></div>
+            <div>ROI: <span class="highlight">${totalExpLKR > 0 ? ((netProfitLKR/totalExpLKR)*100).toFixed(1) : 0}%</span></div>
+        `;
+    }
+
+    window.onload = function() {
+        loadFixedCosts();
+        updatePriceLabels();
+        calc();
+    };
+</script>
+
+</body>
+</html>
